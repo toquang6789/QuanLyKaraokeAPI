@@ -5,7 +5,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using QuanLyKaraokeAPI;
 using QuanLyKaraokeAPI.Entities;
+using QuanLyKaraokeAPI.ModelDTO.Account;
 using QuanLyKaraokeAPI.Service;
+using SixLabors.ImageSharp;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
 
@@ -15,7 +17,7 @@ builder.Services.AddDbContext<AppDBContext>(options =>
 {
     options.UseSqlServer(connectstring);
 });
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDBContext>()
     .AddDefaultTokenProviders();
 
@@ -74,6 +76,10 @@ builder.Services.AddScoped<ITKService, ThongKeService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers().AddJsonOptions(options => { options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve; });
 
+
+//dịch vụ gửi gmail
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -134,7 +140,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseCors("AllowOrigin");
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 //var appEnv = app.Services.BuildServiceProvider().GetService<IWebHostEnvironment>();
 app.UseAuthentication();
 app.UseAuthorization();

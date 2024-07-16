@@ -50,7 +50,7 @@ namespace QuanLyKaraokeAPI.Controllers
             }
         }
         [HttpDelete]
-        [Route("delete/{id}")]
+        [Route("Delete/{id}")]
         public async Task<IActionResult> DeleteByID(int id)
         {
             try
@@ -65,7 +65,7 @@ namespace QuanLyKaraokeAPI.Controllers
             return Ok("Delete Succesfully");
         }
         [HttpPut]
-        [Route("update/{id}")]
+        [Route("Update/{id}")]
         public async Task<IActionResult> UpdateSupp(int id, UpdateSupplierDTO model)
         {
             try

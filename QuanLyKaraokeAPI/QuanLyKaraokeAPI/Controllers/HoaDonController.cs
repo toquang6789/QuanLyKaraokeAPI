@@ -15,7 +15,7 @@ namespace QuanLyKaraokeAPI.Controllers
         }
 
         // POST: api/invoices/calculate
-        [HttpPost("calculate")]
+        [HttpPost("Calculate")]
         public async Task<IActionResult> CalculateInvoice(int orderId)
         {
 
@@ -31,7 +31,7 @@ namespace QuanLyKaraokeAPI.Controllers
         }
 
         // GET: api/invoices/print/{invoiceId}
-        [HttpGet("print/{invoiceId}")]
+        [HttpGet("Print/{invoiceId}")]
         public async Task<IActionResult> PrintInvoice(int invoiceId)
         {
             try

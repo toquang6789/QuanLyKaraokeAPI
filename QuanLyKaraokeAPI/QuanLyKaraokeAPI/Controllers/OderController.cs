@@ -30,30 +30,30 @@ namespace QuanLyKaraokeAPI.Controllers
                 return new BaseResponse<List<OderDTO>> { StatusCode = 200, Message = "Faild" };
             }
         }
-        [HttpPost("Create")]
-        public async Task<IActionResult> CreateO([FromBody] CreateOderDTO createOderDTO)
-        {
-            if (!ModelState.IsValid) return Problem("Validate failed");
-            try
-            {
-                await _oService.CreateO(createOderDTO);
-                return Ok("Create Succesfully");
-            }
-            catch (DbUpdateException dbEx)
-            {
-                // Lấy thông tin chi tiết từ lỗi bên trong (inner exception)
-                var innerExceptionMessage = dbEx.InnerException?.Message ?? dbEx.Message;
-                return StatusCode(500, $"Lỗi server nội bộ: {innerExceptionMessage}");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"{ex.Message}");
-            }
-        }
+        //[HttpPost("Create")]
+        //public async Task<IActionResult> CreateO([FromBody] CreateOderDTO createOderDTO)
+        //{
+        //    if (!ModelState.IsValid) return Problem("Validate failed");
+        //    try
+        //    {
+        //        await _oService.CreateO(createOderDTO);
+        //        return Ok("Create Succesfully");
+        //    }
+        //    catch (DbUpdateException dbEx)
+        //    {
+        //        // Lấy thông tin chi tiết từ lỗi bên trong (inner exception)
+        //        var innerExceptionMessage = dbEx.InnerException?.Message ?? dbEx.Message;
+        //        return StatusCode(500, $"Lỗi server nội bộ: {innerExceptionMessage}");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"{ex.Message}");
+        //    }
+        //}
 
 
         [HttpDelete]
-        [Route("delete/{id}")]
+        [Route("Delete/{id}")]
         public async Task<IActionResult> DeleteP(int id)
         {
             try
@@ -68,7 +68,7 @@ namespace QuanLyKaraokeAPI.Controllers
             return Ok("Delete Succesfully");
         }
         [HttpPut]
-        [Route("update/{id}")]
+        [Route("Update/{id}")]
         public async Task<IActionResult> UpdateD(int id, UpdateOderDTO updateOderDTO)
         {
             try
@@ -89,22 +89,22 @@ namespace QuanLyKaraokeAPI.Controllers
         }
 
 
-        [HttpPost("merge")]
-        public async Task<IActionResult> MergeOrders([FromBody] MergeOrdersRequest request)
-        {
-            var result = await _oService.MergeOrdersAsync(request.SourceOrderId, request.TargetOrderId);
-            if (!result) return BadRequest();
-            return Ok();
-        }
+        //[HttpPost("merge")]
+        //public async Task<IActionResult> MergeOrders([FromBody] MergeOrdersRequest request)
+        //{
+        //    var result = await _oService.MergeOrdersAsync(request.SourceOrderId, request.TargetOrderId);
+        //    if (!result) return BadRequest();
+        //    return Ok();
+        //}
 
-        public class MergeOrdersRequest
-        {
-            public int SourceOrderId { get; set; }
-            public int TargetOrderId { get; set; }
-        }
+        //public class MergeOrdersRequest
+        //{
+        //    public int SourceOrderId { get; set; }
+        //    public int TargetOrderId { get; set; }
+        //}
 
 
-        [HttpPost("add-order")]
+        [HttpPost("Add-Order")]
         public async Task<IActionResult> AddOrder(CreateOderDTO createOrderDTO)
         {
             try
@@ -129,7 +129,7 @@ namespace QuanLyKaraokeAPI.Controllers
         }
 
 
-        [HttpPost("thanhtoanstatus-order/{orderId}")]
+        [HttpPost("ThanhToanStatus-Order/{orderId}")]
         public async Task<IActionResult> PayOrder(int orderId)
         {
             try

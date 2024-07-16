@@ -108,6 +108,7 @@ namespace QuanLyKaraokeAPI.Service
             var c = await _carepository.GetById(id);
             return new ProductDTO
             {
+                ProductID= product.ProductID,
                 CategoriesID = product.CategoriesID,
                 CategoriesName = c.CategoryName,
                 ProductName = product.ProductName,

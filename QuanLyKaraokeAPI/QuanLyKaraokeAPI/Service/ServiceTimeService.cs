@@ -41,13 +41,18 @@ namespace QuanLyKaraokeAPI.Service
 
             await _srepository.Add(product);
         }
+        private string ConvertToBase64(string filePath)
+        {
+            byte[] imageArray = System.IO.File.ReadAllBytes(filePath);
+            return Convert.ToBase64String(imageArray);
+        }
 
         private string UploadedFile(CreateServiceTimeDTO model)
         {
             string uniqueFileName = null;
 
-            if (model.Image != null)
-            {
+            if (model.Image == null) return null;
+            
                 string webRootPath = _webHostEnvironment.ContentRootPath ?? throw new ArgumentNullException(nameof(_webHostEnvironment.WebRootPath), "Web root path cannot be null.");
 
 
@@ -64,9 +69,9 @@ namespace QuanLyKaraokeAPI.Service
                 {
                     model.Image.CopyTo(fileStream);
                 }
-            }
+            
 
-            return uniqueFileName;
+            return ConvertToBase64(filePath);
         }
 
 
@@ -139,8 +144,8 @@ namespace QuanLyKaraokeAPI.Service
         private string UploadedFileUpadate(UpdateServiceTimeDTO model)
         {
             string uniqueFileName = null;
-            if (model.Image != null)
-            {
+            if (model.Image == null) return null;
+            
                 string uploadsFolder = Path.Combine(_webHostEnvironment.ContentRootPath, "Images");
                 if (!Directory.Exists(uploadsFolder))
                 {
@@ -152,8 +157,8 @@ namespace QuanLyKaraokeAPI.Service
                 {
                     model.Image.CopyTo(fileStream);
                 }
-            }
-            return uniqueFileName;
+            
+            return ConvertToBase64(filePath);
         }
     }
 }

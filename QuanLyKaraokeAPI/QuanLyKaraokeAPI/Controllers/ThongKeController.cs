@@ -15,7 +15,7 @@ namespace QuanLyKaraokeAPI.Controllers
             _logger = logger;
         }
         //tong doanh thu
-        [HttpGet("total-income")]
+        [HttpGet("Total-Income")]
         public async Task<IActionResult> GetTotalIncome(DateTime startDate, DateTime endDate)
         {
             try
@@ -29,7 +29,7 @@ namespace QuanLyKaraokeAPI.Controllers
             }
         }
         //tong chi phi
-        [HttpGet("total-cost")]
+        [HttpGet("Total-Cost")]
         public async Task<IActionResult> GetTotalCost(DateTime startDate, DateTime endDate)
         {
             try
@@ -44,7 +44,7 @@ namespace QuanLyKaraokeAPI.Controllers
         }
 
         //loi nhuan
-        [HttpGet("profit")]
+        [HttpGet("Profit")]
         public async Task<IActionResult> GetProfit(DateTime startDate, DateTime endDate)
         {
             try

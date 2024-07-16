@@ -59,7 +59,7 @@ namespace QuanLyKaraokeAPI.Controllers
             }
         }
         [HttpDelete]
-        [Route("delete/{id}")]
+        [Route("Delete/{id}")]
         public async Task<IActionResult> DeleteTable(int id)
         {
             try
@@ -74,7 +74,7 @@ namespace QuanLyKaraokeAPI.Controllers
         }
 
         [HttpPut]
-        [Route("update/{id}")]
+        [Route("Update/{id}")]
         public async Task<IActionResult> UpdateTable(int id, UpdateTableDTO updateTableDTO)
         {
             try
@@ -89,7 +89,7 @@ namespace QuanLyKaraokeAPI.Controllers
         }
 
 
-        [HttpPut("updatestatus/{id}")]
+        [HttpPut("Updatestatus/{id}")]
         public async Task<IActionResult> UpdateTableStatus(int id, [FromBody] int status)
         {
             var result = await _tService.UpdateTableStatusAsync(id, status);
@@ -97,7 +97,7 @@ namespace QuanLyKaraokeAPI.Controllers
             return NoContent();
         }
 
-        [HttpPost("reserve-table")]
+        [HttpPost("Reserve-Table")]
         public async Task<IActionResult> ReserveTable(int tableId)
         {
             try

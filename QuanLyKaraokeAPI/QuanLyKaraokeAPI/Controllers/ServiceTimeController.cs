@@ -25,7 +25,7 @@ namespace QuanLyKaraokeAPI.Controllers
                 var data = await _sService.GetSTime();
                 return new BaseResponse<List<ServiceTimeDTO>> { StatusCode = 200, Message = "Sucessed", Data = data };
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new BaseResponse<List<ServiceTimeDTO>> { StatusCode = 200, Message = "Faild" };
             }
@@ -52,7 +52,7 @@ namespace QuanLyKaraokeAPI.Controllers
         }
 
         [HttpDelete]
-        [Route("delete/{id}")]
+        [Route("Delete/{id}")]
         public async Task<IActionResult> DeleteS(int id)
         {
             try
@@ -67,7 +67,7 @@ namespace QuanLyKaraokeAPI.Controllers
             return Ok("Delete Succesfully");
         }
         [HttpPut]
-        [Route("update/{id}")]
+        [Route("Update/{id}")]
         public async Task<IActionResult> UpdateP(int id, UpdateServiceTimeDTO updateServiceTimeDTO)
         {
             try

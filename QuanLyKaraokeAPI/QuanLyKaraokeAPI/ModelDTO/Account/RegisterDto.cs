@@ -22,7 +22,7 @@ namespace QuanLyKaraokeAPI.ModelDTO.Account
         public bool Sex { get; set; }
         [Required]
         public IFormFile Avatar { get; set; }
-        public int Status { get; set; }
+        //public int Status { get; set; }
         public bool TypeUser { get; set; }
     }
 }

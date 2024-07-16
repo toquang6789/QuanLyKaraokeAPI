@@ -32,6 +32,19 @@ namespace QuanLyKaraokeAPI.Service
             {
                 throw new Exception($"Order with ID {createDetailOderProductDTO.OderID} does not exist.");
             }
+            var product = await _context.Products.FindAsync(createDetailOderProductDTO.ProductID);
+            if (product == null) throw new Exception($"Product with ID {createDetailOderProductDTO.ProductID} does not exist.");
+            if(product.Quantity < createDetailOderProductDTO.Quantity)
+            {
+                throw new Exception("Sản phẩm tạm thời hết hàng.");
+            }
+            product.Quantity -= createDetailOderProductDTO.Quantity;
+            _context.Products.Update(product);
+            await _context.SaveChangesAsync();
+
+            
+
+
             var detaiP = new DetailOderProduct
             {
                 OderID = createDetailOderProductDTO.OderID,
@@ -42,6 +55,18 @@ namespace QuanLyKaraokeAPI.Service
 
             };
             await _dtaiprepository.Add(detaiP);
+
+
+
+            var detailOrderService = await _context.OrdersService.FirstOrDefaultAsync(d => d.OderID == createDetailOderProductDTO.OderID);
+            if (detailOrderService != null)
+            {
+                // Tăng Quantity của DetailOderService
+                detailOrderService.Quantity += createDetailOderProductDTO.Quantity;
+                _context.OrdersService.Update(detailOrderService);
+                await _context.SaveChangesAsync();
+            }
+            await _context.SaveChangesAsync();
         }
 
         public async Task DeleteDetailOderP(int id)

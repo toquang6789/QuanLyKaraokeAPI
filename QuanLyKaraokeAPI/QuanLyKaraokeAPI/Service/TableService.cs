@@ -39,12 +39,19 @@ namespace QuanLyKaraokeAPI.Service
             };
             await _tableRepository.Add(table);
         }
+
+        private string ConvertToBase64(string filePath)
+        {
+            byte[] imageArray = System.IO.File.ReadAllBytes(filePath);
+            return Convert.ToBase64String(imageArray);
+        }
+
         private string UploadedFile(CreateTableDTO model)
         {
             string uniqueFileName = null;
 
-            if (model.Image != null)
-            {
+            if (model.Image == null) return null;
+            
                 string webRootPath = _webHostEnvironment.ContentRootPath ?? throw new ArgumentNullException(nameof(_webHostEnvironment.WebRootPath), "Web root path cannot be null.");
 
 
@@ -61,8 +68,8 @@ namespace QuanLyKaraokeAPI.Service
                 {
                     model.Image.CopyTo(fileStream);
                 }
-            }
-            return uniqueFileName;
+            
+            return ConvertToBase64(filePath);
         }
         public async Task DeleteTable(int id)
         {
@@ -112,8 +119,8 @@ namespace QuanLyKaraokeAPI.Service
         private string UploadedFileUpadate(UpdateTableDTO model)
         {
             string uniqueFileName = null;
-            if (model.Image != null)
-            {
+            if (model.Image == null) return null;
+            
                 string uploadsFolder = Path.Combine(_webHostEnvironment.ContentRootPath, "Images");
                 if (!Directory.Exists(uploadsFolder))
                 {
@@ -125,8 +132,8 @@ namespace QuanLyKaraokeAPI.Service
                 {
                     model.Image.CopyTo(fileStream);
                 }
-            }
-            return uniqueFileName;
+            
+            return ConvertToBase64(filePath);
         }
 
         public async Task<bool> UpdateTableStatusAsync(int id, int status)

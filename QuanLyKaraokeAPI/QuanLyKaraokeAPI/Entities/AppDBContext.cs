@@ -2,10 +2,11 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using QuanLyKaraokeAPI.Entities.Login;
+using QuanLyKaraokeAPI.ModelDTO.Account;
 
 namespace QuanLyKaraokeAPI.Entities
 {
-    public class AppDBContext(DbContextOptions options) : IdentityDbContext<IdentityUser>(options)
+    public class AppDBContext(DbContextOptions options) : IdentityDbContext<ApplicationUser>(options)
     {
         //public AppDBContext(DbContextOptions<AppDBContext> options): base(options) { }
         public DbSet<User> Users { get; set; }

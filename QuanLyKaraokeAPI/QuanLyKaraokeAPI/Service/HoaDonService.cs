@@ -2,6 +2,8 @@
 using PdfSharpCore.Drawing;
 using PdfSharpCore.Pdf;
 using QuanLyKaraokeAPI.Entities;
+using QuanLyKaraokeAPI.ModelDTO.DetailOderProduct;
+using QuanLyKaraokeAPI.ModelDTO.DetailOderService;
 
 
 namespace QuanLyKaraokeAPI.Service
@@ -44,10 +46,21 @@ namespace QuanLyKaraokeAPI.Service
                     throw new InvalidOperationException($"Order with ID {orderId} not found.");
 
                 float totalAmountProducts = order.detaioderProducts.Sum(d => d.Quantity * d.products.Price);
-                //them
-                //float totalAmountServices = order.DetailOrdersService.Sum(d => d.Quantity * d.serviceTime.Price);
+                var orderedProducts = order.detaioderProducts.Select(d => new DetailOderProductDTO
+                {
+                    OderID = d.OderID,
+                    ProductID = d.ProductID,
+                    productsName = d.products.ProductName,
+                    TimeOder = d.TimeOder,
+                    Status = d.Status,
+                    Price = d.products.Price,
+                    Quantity = d.Quantity,
+                    TotalPrice = d.Quantity * d.products.Price
+                }).ToList();
+
 
                 float totalAmountServices = 0;
+                var orderedServices = new List<DetaiOderServiceDTO>();
                 foreach (var detail in order.DetailOrdersService)
                 {
                     var duration = (detail.EndTime - detail.StartTime).TotalHours;
@@ -57,6 +70,19 @@ namespace QuanLyKaraokeAPI.Service
                     }
                     var serviceAmount = (float)(duration * detail.serviceTime.Price + detail.serviceTime.OpenPrice);
                     totalAmountServices += serviceAmount;
+                    orderedServices.Add(new DetaiOderServiceDTO 
+                    {
+                        OderID = detail.OderID,
+                        ServiceID = detail.ServiceID,
+                        serviceTime = detail.serviceTime.ServiceName,
+                        OpenPrice = detail.serviceTime.OpenPrice,
+                        PricePerHour = detail.serviceTime.Price,
+                        Quantity = detail.Quantity,
+                        Status = detail.Status,
+                        StartTime = detail.StartTime,
+                        EndTime = detail.EndTime,
+                        TotalPrice = serviceAmount
+                    });
                 }
                 // Tổng tiền của hoá đơn
                 float totalAmount = totalAmountProducts + totalAmountServices;
@@ -66,9 +92,13 @@ namespace QuanLyKaraokeAPI.Service
                     OderID = order.OderID,
                     //accountName = order.Account.AccountName,
                     TotalAmount = totalAmount,
+                    TotalService = totalAmountServices,
+                    TotalProduct = totalAmountProducts,
                     Status = "Pending", // Example status
                     CreatedAt = DateTime.Now,
-                    EndDate = DateTime.Now // Example end date
+                    EndDate = DateTime.Now, // Example end date
+                    OrderedProducts = orderedProducts,
+                    OrderedServices = orderedServices,
                 };
 
                 _context.HoaDons.Add(invoice);

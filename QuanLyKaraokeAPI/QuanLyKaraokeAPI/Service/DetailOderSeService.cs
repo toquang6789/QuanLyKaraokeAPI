@@ -25,6 +25,10 @@ namespace QuanLyKaraokeAPI.Service
         }
         public async Task CreateDetailOderS(CreateDetaiOderServiceDTO createDetaiOderServiceDTO)
         {
+            if (createDetaiOderServiceDTO.StartTime > createDetaiOderServiceDTO.EndTime)
+            {
+                throw new InvalidOperationException("Thời gian nhập không hợp lệ");
+            }
             var detais = new DetailOderService
             {
                 OderID = createDetaiOderServiceDTO.OderID,

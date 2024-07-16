@@ -18,15 +18,27 @@ namespace QuanLyKaraokeAPI.Service
         public readonly IRepository<Products> _prepository;
         public readonly IRepository<Units> _urepository;
         public readonly IRepository<ImportProducts> _importproducts;
-        public DetailImportService(IRepository<DetailImports> dtaiprepository, IRepository<Products> prepository, IRepository<Units> urepository, IRepository<ImportProducts> importproducts)
+        public readonly AppDBContext _context;
+        public DetailImportService(AppDBContext context,IRepository<DetailImports> dtaiprepository, IRepository<Products> prepository, IRepository<Units> urepository, IRepository<ImportProducts> importproducts)
         {
             _dtaiprepository = dtaiprepository;
             _prepository = prepository;
             _urepository = urepository;
             _importproducts = importproducts;
+            _context = context;
         }
         public async Task CreateDetailI(CreateDetailImportDTO createDetailImportDTO)
         {
+            var product = await _context.Products.FindAsync(createDetailImportDTO.ProductID);
+
+            if (product == null)
+            {
+                throw new Exception($"Product with ID {createDetailImportDTO.ProductID} does not exist.");
+
+            }
+            product.Quantity += createDetailImportDTO.Quantity;
+            _context.Products.Update(product);
+            await _context.SaveChangesAsync();
             var detaiP = new DetailImports
             {
                 IdImport = createDetailImportDTO.IdImport,

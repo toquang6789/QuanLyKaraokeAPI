@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using QuanLyKaraokeAPI.Entities;
 using QuanLyKaraokeAPI.Entities.Login;
 using QuanLyKaraokeAPI.ModelDTO.Account;
+using QuanLyKaraokeAPI.Service;
 using System.Data;
 using System.Security.Claims;
 using System.Text;
@@ -19,14 +20,18 @@ namespace QuanLyKaraokeAPI.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly AppDBContext _context;
         private readonly IConfiguration _configuration;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly RoleManager<IdentityRole> _roleManager;
-        public AccountController(RoleManager<IdentityRole> roleManager, IWebHostEnvironment webHostEnvironment, UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, AppDBContext context, IConfiguration configuration)
+        private readonly IEmailSender _emailSender;
+        private readonly ILogger<AccountController> _logger;
+        public AccountController(ILogger<AccountController> logger,IEmailSender emailSender,RoleManager<IdentityRole> roleManager, IWebHostEnvironment webHostEnvironment, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, AppDBContext context, IConfiguration configuration)
         {
+            _logger = logger;
+            _emailSender = emailSender;
             _roleManager = roleManager;
             _webHostEnvironment = webHostEnvironment;
             _userManager = userManager;
@@ -34,87 +39,10 @@ namespace QuanLyKaraokeAPI.Controllers
             _context = context;
             _configuration = configuration;
         }
-        //[HttpPost("register")]
-        //public async Task<IActionResult> Register([FromForm] RegisterDto registerDto)
-        //{
-        //    var existingUser = await _userManager.FindByNameAsync(registerDto.Email);
-        //    if (existingUser != null)
-        //    {
-        //        return BadRequest("Username is already taken.");
-        //    }
-        //    string uniqueFileName = UploadedFile(registerDto);
-        //    var user = new User
-        //    {
-        //        fullName = registerDto.FullName,
-        //        Email = registerDto.Email,
-        //        Phone = registerDto.Phone,
-        //        Address = registerDto.Address,
-        //        Birthday = registerDto.Birthday,
-        //        Sex = registerDto.Sex,
-        //        Avatar = uniqueFileName,
-        //        Status = 1,
-        //        TypeUser = registerDto.TypeUser ? true : false
-        //    };
+       
 
-        //    _context.Users.Add(user);
-        //    await _context.SaveChangesAsync();
-
-        //    var account = new Account
-        //    {
-        //        UserName = registerDto.Email,
-        //        Email = registerDto.Email,
-        //        Password = registerDto.Password,
-        //        AccountName = registerDto.AccountName,
-        //        UserId = user.UserId,
-        //        Status = user.Status
-        //    };
-
-        //    var result = await _userManager.CreateAsync(account, registerDto.Password);
-
-        //    if (result.Succeeded)
-        //    {
-
-        //        var roleExists = await _roleManager.RoleExistsAsync("User");
-        //        if (!roleExists)
-        //        {
-        //            var role = new Role
-        //            {
-        //                Name = "User",  // Tên vai trò trong IdentityRole
-        //                RoleName = "User"  // Tên vai trò trong lớp Role của bạn
-        //            };
-        //            var roleResult = await _roleManager.CreateAsync(role);
-        //            if (!roleResult.Succeeded)
-        //            {
-        //                await _userManager.DeleteAsync(account);
-        //                return BadRequest("Failed to create role");
-        //            }
-        //        }
-
-        //        var addToRoleResult = await _userManager.AddToRoleAsync(account, "User");
-        //        if (addToRoleResult.Succeeded)
-        //        {
-        //            return Ok();
-        //        }
-        //        else
-        //        {
-        //            // Nếu không thêm được vào vai trò, xóa tài khoản và vai trò đã tạo và trả về lỗi
-        //            await _userManager.DeleteAsync(account);
-        //            await _roleManager.DeleteAsync(await _roleManager.FindByNameAsync("User"));
-        //            return BadRequest("Failed to add user to role 'User'.");
-        //        }
-        //    }
-
-        //    else
-        //    {
-        //        // Nếu không tạo được tài khoản, xóa người dùng vừa tạo và trả về lỗi
-        //        _context.Users.Remove(user);
-        //        await _context.SaveChangesAsync();
-        //        return BadRequest(result.Errors);
-        //    }
-        //}
-
-        [HttpPost("dangki")]
-        [Authorize(Roles = "Admin")]
+        [HttpPost("DangKi")]
+        [AllowAnonymous]
         public async Task<IActionResult> DangKi([FromForm] RegisterDto registerDto)
         {
             if (registerDto == null)
@@ -131,7 +59,7 @@ namespace QuanLyKaraokeAPI.Controllers
                 Birthday = registerDto.Birthday,
                 Sex = registerDto.Sex,
                 Avatar = uniqueFileName,
-                Status = 1,
+                Status = 0,
                 TypeUser = registerDto.TypeUser ? true : false
             };
 
@@ -151,19 +79,26 @@ namespace QuanLyKaraokeAPI.Controllers
             //await _context.SaveChangesAsync();
 
 
-            var newuser = new IdentityUser
+            var newuser = new ApplicationUser
             {
                 UserName = registerDto.FullName,
                 Email = registerDto.Email,
+                Status = 0,
             };
+
+
             var useremail = await _userManager.FindByEmailAsync(registerDto.Email);
             if (useremail != null)
             {
                 return BadRequest("User registered already");
             }
             var registerUser = await _userManager.CreateAsync(newuser, registerDto.Password);
-            if (!registerUser.Succeeded) return BadRequest("Them nguoi dung khong thanh cong");
-            string roleName = registerDto.TypeUser ? "Nhanvien" : "Khachhang";
+            if (!registerUser.Succeeded)
+            {
+               // _logger.LogError("Error registering user: {Errors}", string.Join(", ", registerUser.Errors.Select(e => e.Description)));
+                return BadRequest("Them nguoi dung khong thanh cong");
+            }
+            string roleName = user.TypeUser ? "Nhanvien" : "Khachhang";
             var role = await _roleManager.FindByNameAsync(roleName);
             if (role == null)
             {
@@ -174,17 +109,84 @@ namespace QuanLyKaraokeAPI.Controllers
                 }
             }
             var addToRoleResult = await _userManager.AddToRoleAsync(newuser, roleName);
-            //var role = await _roleManager.FindByNameAsync("Admin");
-            //if (role == null)
-            //{
-            //    await _roleManager.CreateAsync(new IdentityRole("Admin"));
-            //}
-            //var addToRoleResult = await _userManager.AddToRoleAsync(newuser, "Admin");
-            if (!addToRoleResult.Succeeded) return BadRequest("Them nguoi dung vao vai tro khong thanh cong");
-            return Ok("Tao tai khoan Thanh cong");
+            if (!addToRoleResult.Succeeded) return BadRequest("Thêm người dùng vào vai trò không thành công");
+
+            try
+            {
+                // Your registration logic here...
+
+                // Get all users with the Admin role
+                var adminRole = await _roleManager.FindByNameAsync("Admin");
+                if (adminRole != null)
+                {
+                    var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
+                    foreach (var admin in adminUsers)
+                    {
+                        if (!string.IsNullOrWhiteSpace(admin.Email))
+                        {
+                            await _emailSender.SendEmailAsync(admin.Email, "Thông báo tài khoản mới đăng ký", $"Tài khoản {registerDto.FullName} đã đăng ký và cần được duyệt.");
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"Admin user {admin.UserName} does not have a valid email address.");
+                        }
+                    }
+                }
+
+               // return Ok("Tạo tài khoản thành công. Vui lòng chờ admin kích hoạt tài khoản.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending email to admins");
+                return StatusCode(500, "Lỗi khi gửi email thông báo đến admin.");
+            }
+
+
+
+            return Ok("Tạo tài khoản thành công. Vui lòng chờ admin kích hoạt tài khoản.");
+           
 
         }
 
+
+        [HttpPost("KichHoatUser")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ActivateUser([FromBody] XacNhanTK activateUserDto)
+        {
+            var user = await _context.Users.FindAsync(activateUserDto.UserId);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            user.Status = 1; // Activate user
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+
+            var identityUser = await _userManager.FindByEmailAsync(user.Email);
+            if (identityUser == null)
+            {
+                return NotFound("Identity user not found");
+            }
+            var appUser = _userManager.FindByIdAsync(identityUser.Id);
+            identityUser.Status = 1;
+            var updateStatus = await _userManager.UpdateAsync(identityUser);
+            if (!updateStatus.Succeeded)
+            {
+                return BadRequest("Cập nhập trạng thái tài khoản không thành công");
+            }
+            return Ok("Kích hoạt tài khoản thành công");
+        }
+
+
+        [HttpGet("GetDSTaikhoanChuaKichHoat")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult GetPendingActivationUsers()
+        {
+            var pendingUsers = _context.Users.Where(u => u.Status == 0).ToList();
+            return Ok(pendingUsers);
+        }
 
         private string ConvertToBase64(string filePath)
         {
@@ -222,7 +224,7 @@ namespace QuanLyKaraokeAPI.Controllers
 
 
 
-        [HttpPost("login")]
+        [HttpPost("Login")]
         [AllowAnonymous]
         public async Task<IActionResult> Login(LoginDto model)
         {
@@ -235,6 +237,11 @@ namespace QuanLyKaraokeAPI.Controllers
             {
                 return NotFound("User not found");
             }
+         
+            if (user.Status != 1)
+            {
+                return BadRequest("Tài khoản của bạn chưa được kích hoạt.");
+            }
             var result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, false);
             if (result.Succeeded)
             {
@@ -244,7 +251,7 @@ namespace QuanLyKaraokeAPI.Controllers
             return NotFound("User not found");
         }
 
-        private async Task<string> GenerateJwtToken(IdentityUser user)
+        private async Task<string> GenerateJwtToken(ApplicationUser user)
         {
             var userRoles = await _userManager.GetRolesAsync(user);
             var identityClaims = userRoles.Select(role => new Claim(ClaimTypes.Role, role)).ToList();
@@ -292,10 +299,11 @@ namespace QuanLyKaraokeAPI.Controllers
             };
             _context.Accounts.Add(account);
             await _context.SaveChangesAsync();
-            var newUser = new IdentityUser
+            var newUser = new ApplicationUser
             {
                 UserName = adminDto.Email,
                 Email = adminDto.Email,
+                Status = 1
             };
 
             var result = await _userManager.CreateAsync(newUser, adminDto.Password);
@@ -316,7 +324,7 @@ namespace QuanLyKaraokeAPI.Controllers
 
         // Controller action
         [Authorize(Roles = "Admin")]
-        [HttpPost("updateTypeUser")]
+        [HttpPost("UpdateTypeUser")]
         public async Task<IActionResult> UpdateTypeUser([FromBody] UpdateTypeDTO updateTypeUserDto)
         {
             if (!ModelState.IsValid)
@@ -330,7 +338,10 @@ namespace QuanLyKaraokeAPI.Controllers
             {
                 return NotFound("User not found");
             }
-
+            //if (user.Status != 1)
+            //{
+            //    return BadRequest("Tài khoản của bạn chưa được kích hoạt.");
+            //}
             // Update TypeUser based on the value from DTO
             user.TypeUser = updateTypeUserDto.TypeUser;
 
